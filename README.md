@@ -1,5 +1,5 @@
 # ROLL CALL
-Bash script for enumeration (pentesting)
+Bash script for enumeration
 
 # Download
 ```git clone https://github.com/bwithe/roll-call```
