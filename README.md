@@ -10,3 +10,11 @@ Bash script for enumeration (pentesting)
 ```bash roll-call.sh -t <IP>```
 
 ```bash roll-call.sh -t 127.0.0.1```
+
+# Tools used
+- nmap
+- hydra
+- dirb
+- dirbuster
+- smbclient
+
