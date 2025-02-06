@@ -35,7 +35,8 @@ exec > >(tee $ip\_report.txt) 2>&1
 
 function nmap_query {
     echo -e "[+] Starting nmap port scan:"
-    nmap -p- --open $ip > nmap_ports.txt
+    echo "nmap -p- --open $ip \n\n\n" > nmap_ports.txt
+    nmap -p- --open $ip >> nmap_ports.txt
 }
 
 function open_ports {
@@ -50,7 +51,8 @@ function nmap_service {
     echo -e "[+] Starting nmap service scan:"
     for i in $ports
     do
-        nmap -A -p $i $ip > nmap_port_$i\_service.txt
+        echo "nmap -A -p $i $ip \n\n\n" > nmap_port_$i\_service.txt
+	nmap -A -p $i $ip >> nmap_port_$i\_service.txt
     done
 }
 
@@ -72,7 +74,8 @@ function ftp_enumeration {
 	    continue
         else
             echo -e "[+] Starting Hydra FTP enumeration on Port: $ftp_port" 
-            hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp://$ip -V -s $ftp_port > ftp_port_$ftp_port\_enumeration.txt
+	    echo "hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp://$ip -V -s $ftp_port \n\n\n" > ftp_port_$ftp_port\_enumeration.txt
+            hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp://$ip -V -s $ftp_port >> ftp_port_$ftp_port\_enumeration.txt
 	    sleep 1
             results=$(egrep "^\[$ftp_port]" ftp_port_$ftp_port\_enumeration.txt)
             echo -e "${GREEN}[NUGGET] $results${NC}"
@@ -91,7 +94,8 @@ function ssh_enumeration {
             continue
         else
             echo -e "[+] Starting Hydra SSH enumeration on Port: $ssh_port" 
-            hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh://$ip -V -s $ssh_port -t 1 2>/dev/null > ssh_port_$ssh_port\_enumeration.txt
+            echo "hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh://$ip -V -s $ssh_port -t 1 2>/dev/null \n\n\n" > ssh_port_$ssh_port\_enumeration.txt
+	    hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh://$ip -V -s $ssh_port -t 1 2>/dev/null >> ssh_port_$ssh_port\_enumeration.txt
             sleep 1
             results=$(egrep "^\[$ssh_port]" ssh_port_$ssh_port\_enumeration.txt)
             if $(cat ssh_port_$ssh_port\_enumeration.txt | grep -q "could not be completed")
