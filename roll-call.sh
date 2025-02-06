@@ -6,6 +6,19 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -t)
+            ip="$2"
+            shift 2
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
 # Function to display help message
 usage() {
     echo "Usage: $0 -t <ip>"
