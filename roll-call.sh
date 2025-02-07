@@ -179,30 +179,35 @@ function web_enumeration {
         echo "COMMAND: gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt -q" > $ip/${i}_http_info/gobuster_directories.txt
         echo -e "\n\n\n" >> $ip/${i}_http_info/gobuster_directories.txt
         gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt -q >> $ip/${i}_http_info/gobuster_directories.txt &
+	echo -e "${ORANGE}[info] Please review $ip/${i}_http_info/gobuster_directories.txt${NC}"
 
         # Gobuster for files
         echo -e "[+] Starting http enumeration with Gobuster for files on Port: $i"
         echo "COMMAND: gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt -q " > $ip/${i}_http_info/gobuster_files.txt
         echo -e "\n\n\n" >> $ip/${i}_http_info/gobuster_files.txt
         gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt -q >> $ip/${i}_http_info/gobuster_files.txt &
+	echo -e "${ORANGE}[info] Please review: $ip/${i}_http_info/gobuster_files.txt${NC}"
 
         # Dirb for directories
         echo -e "[+] Starting http enumeration with Dirb for directories on Port: $i"
         echo "COMMAND: dirb http://$ip:$i -l /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt -q" > $ip/${i}_http_info/dirb_directories.txt
         echo -e "\n\n\n" >> $ip/${i}_http_info/dirb_directories.txt
         dirb http://$ip:$i -l /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt >> $ip/${i}_http_info/dirb_directories.txt &>/dev/null &
+        echo -e "${ORANGE}[info] Please review: $ip/${i}_http_info/dirb_directories.txt${NC}"
 
         # Dirb for files
         echo -e "[+] Starting http enumeration with Dirb for files on Port: $i"
         echo "COMMAND: dirb http://$ip:$i -l /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt" > $ip/${i}_http_info/dirb_files.txt
         echo -e "\n\n\n" >> $ip/${i}_http_info/dirb_files.txt
         dirb http://$ip:$i -l /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt >> $ip/${i}_http_info/dirb_files.txt &>/dev/null &
+        echo -e "${ORANGE}[info] Please review: $ip/${i}_http_info/dirb_files.txt${NC}"
 
         # Nikto for vulnerability scan
         echo -e "[+] Starting http enumeration with Nikto on Port: $i"
         echo "COMMAND: nikto -h http://$ip:$i -Tuning 5" > $ip/${i}_http_info/nikto_scan.txt
         echo -e "\n\n\n" >> $ip/${i}_http_info/nikto_scan.txt
         nikto -h http://$ip:$i -Tuning 5 >> $ip/${i}_http_info/nikto_scan.txt &>/dev/null &
+        echo -e "${ORANGE}[info] Please review: $ip/${i}_http_info/nikto_scan.txt${NC}"
 	fi
     done
 }
