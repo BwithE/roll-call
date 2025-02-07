@@ -70,7 +70,7 @@ function nmap_service {
         mkdir -p $ip/${i}_info
         echo "COMMAND: nmap -A -p $i $ip" > $ip/${i}_info/nmap_port_${i}_service.txt
         echo -e "\n\n\n" >> $ip/${i}_info/nmap_port_${i}_service.txt
-        nmap -A -p $i $ip >> $ip/${i}_info/nmap_port_${i}_service.txt
+        nmap -sV -p $i $ip >> $ip/${i}_info/nmap_port_${i}_service.txt
         services=$(cat $ip/${i}_info/nmap_port_${i}_service.txt | egrep open | egrep "^$i" )
         echo -e "${ORANGE}[info] $services${NC}"
         sir=$(cat $ip/${i}_info/nmap_port_${i}_service.txt | egrep "^[0-9]+++++"| egrep "$i" | awk '{print $3}')
