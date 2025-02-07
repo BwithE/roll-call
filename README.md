@@ -27,6 +27,7 @@ bash roll-call.sh -t 127.0.0.1
 - hydra
 - dirb
 - gobuster
+- nikto
 - smbclient
 
 # Working on adding
