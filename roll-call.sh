@@ -97,9 +97,9 @@ function ftp_enumeration {
 	        # Handle the results and display appropriate messages
             if [ -n "$results" ]; then
                 echo -e "${GREEN}[CREDS] $results${NC}"
-            elif egrep -w "could not be completed" "$ip/${i}_ftp_info/hydra_ftp_${ftp_port}.txt"; then
+            elif egrep -qw "could not be completed" "$ip/${i}_ftp_info/hydra_ftp_${ftp_port}.txt"; then
                 echo -e "${RED}[error] COULDN'T FINISH Hydra FTP enumeration: SUGGEST MANUAL ENUMERATION${NC}"
-            elif egrep -w "0 valid password found" "$ip/${i}_ftp_info/hydra_ftp_${ftp_port}.txt"; then
+            elif egrep -qw "0 valid password found" "$ip/${i}_ftp_info/hydra_ftp_${ftp_port}.txt"; then
                 echo -e "${ORANGE}[info] 0 FTP PASSWORDS FOUND${NC}"
             else
                 echo -e "${ORANGE}[info] 0 FTP PASSWORDS FOUND${NC}"
@@ -126,14 +126,84 @@ function ssh_enumeration {
             results=$(egrep "^\[$ssh_port]" $ip/${i}_ssh_info/hydra_ssh_${ssh_port}.txt)
             if [ -n "$results" ]; then
                 echo -e "${GREEN}[CREDS] $results${NC}"
-            elif egrep -w "could not be completed" "$output_file"; then
+            elif egrep -qw "could not be completed" "$output_file"; then
                 echo -e "${RED}[error] COULDN'T FINISH Hydra SSH enumeration: SUGGEST MANUAL ENUMERATION${NC}"
-            elif egrep -w "0 valid password found" "$output_file"; then
+            elif egrep -qw "0 valid password found" "$output_file"; then
                 echo -e "${ORANGE}[info] 0 SSH PASSWORDS FOUND${NC}"
             else
                 echo -e "${ORANGE}[info] 0 SSH PASSWORDS FOUND${NC}"
             fi
         fi
+    done
+}
+
+function smb_enumeration {
+    for i in $ports
+    do
+        smb_query=$(cat $ip/${i}_smb_info/nmap_port_${i}_service.txt 2>/dev/null | egrep open | egrep "^$i" | egrep -wo smb)
+        smb_port=$(cat $ip/${i}_smb_info/nmap_port_${i}_service.txt 2>/dev/null | egrep open | egrep "^$i" | egrep -w smb | cut -d '/' -f 1)
+        if [ -z "$smb_port" ]
+        then
+            continue
+        else
+            echo -e "[+] Starting Hydra SMB enumeration on Port: $smb_port"
+            echo "COMMAND: hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/smb-betterdefaultpasslist.txt smb://$ip -V -s $smb_port" > $ip/${i}_smb_info/hydra_smb_${smb_port}.txt
+            echo -e "\n\n\n" >> $ip/${i}_smb_info/hydra_smb_${smb_port}.txt
+            hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/smb-betterdefaultpasslist.txt smb://$ip -V -s $smb_port >> $ip/${i}_smb_info/hydra_smb_${smb_port}.txt
+            sleep 1
+            results=$(egrep "^\[$smb_port]" $ip/${i}_smb_info/hydra_smb_${smb_port}.txt)
+            if [ -n "$results" ]; then
+                echo -e "${GREEN}[CREDS] $results${NC}"
+            elif egrep -qw "could not be completed" "$ip/${i}_smb_info/hydra_smb_${smb_port}.txt"; then
+                echo -e "${RED}[error] COULDN'T FINISH Hydra SMB enumeration: SUGGEST MANUAL ENUMERATION${NC}"
+            elif egrep -qw "0 valid password found" "$ip/${i}_smb_info/hydra_smb_${smb_port}.txt"; then
+                echo -e "${ORANGE}[info] 0 SMB PASSWORDS FOUND${NC}"
+            else
+                echo -e "${ORANGE}[info] 0 SMB PASSWORDS FOUND${NC}"
+            fi
+        fi
+    done
+}
+
+function web_enumeration {
+    for i in $ports
+    do
+        http_query=$(cat $ip/${i}_http_info/nmap_port_${i}_service.txt 2>/dev/null | egrep open | egrep "^$i" | egrep -wo http)
+        http_port=$(cat $ip/${i}_http_info/nmap_port_${i}_service.txt 2>/dev/null | egrep open | egrep "^$i" | egrep -w http | cut -d '/' -f 1)
+        if [ -z "$http_port" ]
+        then
+            continue
+        else
+        # Gobuster for directories
+        echo -e "[+] Starting http enumeration with Gobuster for directories on Port: $i"
+        echo "COMMAND: gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt -q" > $ip/${i}_http_info/gobuster_directories.txt
+        echo -e "\n\n\n" >> $ip/${i}_http_info/gobuster_directories.txt
+        gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt -q >> $ip/${i}_http_info/gobuster_directories.txt &
+
+        # Gobuster for files
+        echo -e "[+] Starting http enumeration with Gobuster for files on Port: $i"
+        echo "COMMAND: gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt -q " > $ip/${i}_http_info/gobuster_files.txt
+        echo -e "\n\n\n" >> $ip/${i}_http_info/gobuster_files.txt
+        gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt -q >> $ip/${i}_http_info/gobuster_files.txt &
+
+        # Dirb for directories
+        echo -e "[+] Starting http enumeration with Dirb for directories on Port: $i"
+        echo "COMMAND: dirb http://$ip:$i -l /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt -q" > $ip/${i}_http_info/dirb_directories.txt
+        echo -e "\n\n\n" >> $ip/${i}_http_info/dirb_directories.txt
+        dirb http://$ip:$i -l /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt >> $ip/${i}_http_info/dirb_directories.txt &>/dev/null &
+
+        # Dirb for files
+        echo -e "[+] Starting http enumeration with Dirb for files on Port: $i"
+        echo "COMMAND: dirb http://$ip:$i -l /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt" > $ip/${i}_http_info/dirb_files.txt
+        echo -e "\n\n\n" >> $ip/${i}_http_info/dirb_files.txt
+        dirb http://$ip:$i -l /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt >> $ip/${i}_http_info/dirb_files.txt &>/dev/null &
+
+        # Nikto for vulnerability scan
+        echo -e "[+] Starting http enumeration with Nikto on Port: $i"
+        echo "COMMAND: nikto -h http://$ip:$i -Tuning 5" > $ip/${i}_http_info/nikto_scan.txt
+        echo -e "\n\n\n" >> $ip/${i}_http_info/nikto_scan.txt
+        nikto -h http://$ip:$i -Tuning 5 >> $ip/${i}_http_info/nikto_scan.txt &>/dev/null &
+	fi
     done
 }
 
@@ -143,6 +213,15 @@ open_ports
 
 nmap_service
 
+web_enumeration
+
 ftp_enumeration
 
 ssh_enumeration
+
+smb_enumeration
+
+echo ""
+echo "[!] Still running scans in the background."
+echo "[!] Please review everything in '$ip/' while we finish up. "
+echo ""
