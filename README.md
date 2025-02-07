@@ -1,6 +1,9 @@
 # ROLL CALL
 Bash script for enumeration
 
+Originally designed while working through OSCP labs.
+
+
 <img width="831" alt="Screenshot 2025-02-06 at 11 41 39 PM" src="https://github.com/user-attachments/assets/86556ce8-4e37-465c-974d-5f0fa2b62b56" />
 
 
