@@ -26,7 +26,7 @@ bash roll-call.sh -t 127.0.0.1
 - nmap
 - hydra
 - dirb
-- dirbuster
+- gobuster
 - smbclient
 
 # Working on adding
