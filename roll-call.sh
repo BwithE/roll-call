@@ -89,9 +89,9 @@ function ftp_enumeration {
             continue
         else
             echo -e "[+] Starting Hydra FTP enumeration on Port: $ftp_port"
-            echo "COMMAND: hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp://$ip -q -V -s $ftp_port" > $ip/${i}_ftp_info/hydra_ftp_${ftp_port}.txt
+            echo "COMMAND: hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp://$ip -V -s $ftp_port" > $ip/${i}_ftp_info/hydra_ftp_${ftp_port}.txt
             echo -e "\n\n\n" >> $ip/${i}_ftp_info/hydra_ftp_${ftp_port}.txt
-            hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp://$ip -q -V -s $ftp_port >> $ip/${i}_ftp_info/hydra_ftp_${ftp_port}.txt
+            hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp://$ip -V -s $ftp_port >> $ip/${i}_ftp_info/hydra_ftp_${ftp_port}.txt
             sleep 1
             results=$(egrep "^\[$ftp_port]" $ip/${i}_ftp_info/hydra_ftp_${ftp_port}.txt)
 	        # Handle the results and display appropriate messages
@@ -118,9 +118,9 @@ function ssh_enumeration {
             continue
         else
             echo -e "[+] Starting Hydra SSH enumeration on Port: $ssh_port"
-            echo "COMMAND: hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh://$ip -q -V -s $ssh_port -t 1 2>/dev/null" > $ip/${i}_ssh_info/hydra_ssh_${ssh_port}.txt
+            echo "COMMAND: hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh://$ip -V -s $ssh_port -t 1 2>/dev/null" > $ip/${i}_ssh_info/hydra_ssh_${ssh_port}.txt
             echo -e "\n\n\n" >> $ip/${i}_ssh_info/hydra_ssh_${ssh_port}.txt
-            hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh://$ip -q -V -s $ssh_port -t 1 2>/dev/null >> $ip/${i}_ssh_info/hydra_ssh_${ssh_port}.txt
+            hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh://$ip -V -s $ssh_port -t 1 2>/dev/null >> $ip/${i}_ssh_info/hydra_ssh_${ssh_port}.txt
             sleep 1
 	    output_file="$ip/${i}_ssh_info/hydra_ssh_${ssh_port}.txt"
             results=$(egrep "^\[$ssh_port]" $ip/${i}_ssh_info/hydra_ssh_${ssh_port}.txt)
