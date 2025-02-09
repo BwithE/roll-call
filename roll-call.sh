@@ -265,13 +265,13 @@ while true; do
 
     # Print the current remaining process counts
     echo "[+] Remaining processes
-    - Gobuster: $gobuster_count
-    - Dirb: $dirb_count
-    - Nikto: $nikto_count
     - Enum4Linux: $enum4linux_count
+    - Dirb: $dirb_count
+    - Gobuster: $gobuster_count
     - Hydra FTP: $ftphydra_count
-    - Hydra SSH: $sshhydra_count
     - Hydra SMB: $smbhydra_count
+    - Hydra SSH: $sshhydra_count
+    - Nikto: $nikto_count
     " >&2
     
     sleep 60
