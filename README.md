@@ -4,11 +4,12 @@ Bash script for enumeration
 Originally designed while working through OSCP labs.
 
 
-<img width="831" alt="Screenshot 2025-02-06 at 11 41 39 PM" src="https://github.com/user-attachments/assets/86556ce8-4e37-465c-974d-5f0fa2b62b56" />
+![image](https://github.com/user-attachments/assets/4b88ba67-c0c9-4619-b8d6-ad0359dafc2d)
 
 
 - Tree listing
-<img width="414" alt="Screenshot 2025-02-06 at 11 32 29 PM" src="https://github.com/user-attachments/assets/70d11a65-83a0-4200-a195-bf3e7dc30dbe" />
+![image](https://github.com/user-attachments/assets/07186e9d-62d0-4391-b2f2-9a2e08a89293)
+
 
 # Download
 ```
@@ -20,11 +21,17 @@ cd roll-call
 
 # Usage
 ```
+chmod +x roll-call.sh
+
+./roll-call.sh -t <IP>
+# OR
 bash roll-call.sh -t <IP>
 
 ```
 
 ```
+./roll-call.sh -t 127.0.0.1
+# OR
 bash roll-call.sh -t 127.0.0.1
 
 ```
@@ -36,6 +43,8 @@ bash roll-call.sh -t 127.0.0.1
 - gobuster
 - nikto
 - smbclient
+- enum4linnux
+- rpcclient
 
 # Working on adding
-- enum4linnux
+- 
