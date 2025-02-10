@@ -25,14 +25,18 @@ cd roll-call
 chmod +x roll-call.sh
 
 ./roll-call.sh -t <IP>
+
 # OR
+
 bash roll-call.sh -t <IP>
 
 ```
 
 ```
 ./roll-call.sh -t 127.0.0.1
+
 # OR
+
 bash roll-call.sh -t 127.0.0.1
 
 ```
