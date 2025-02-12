@@ -39,7 +39,7 @@ exec > >(tee $ip/REPORT.txt) 2>&1
 
 # initial nmap scan
   mkdir -p $ip/port_scan
-  echo -e "${PINK}[+] Starting nmap port scan:${NC}"
+  echo -e "${BLUE}[+] Starting nmap port scan:${NC}"
   echo "COMMAND: nmap -p- --open $ip" > $ip/port_scan/nmap_ports.txt
   echo -e "\n\n\n" >> $ip/port_scan/nmap_ports.txt
   nmap -p- -Pn --open $ip >> $ip/port_scan/nmap_ports.txt
@@ -48,7 +48,7 @@ exec > >(tee $ip/REPORT.txt) 2>&1
   ports=$(cat $ip/port_scan/nmap_ports.txt | egrep open | egrep "tcp|udp" | egrep -o "^[0-9]+")
   for i in $ports
   do
-      echo -e "${BLUE}[info] Open Port: $i${NC}"
+      echo -e "${GREEN}[info] Open Port: $i${NC}"
   done
 
 
@@ -74,7 +74,7 @@ fi
 #####################
 # nmap service scan #
 #####################
-echo -e "${PINK}[+] Starting nmap service scan:${NC}"
+echo -e "${BLUE}[+] Starting nmap service scan:${NC}"
 for i in $ports
 do
     sleep 1
@@ -84,7 +84,7 @@ do
     echo -e "\n\n\n" >> $ip/${i}_info/nmap_port_${i}_service.txt
     nmap -sV -p $i $ip >> $ip/${i}_info/nmap_port_${i}_service.txt
     sirs=$(cat $ip/${i}_info/nmap_port_${i}_service.txt | egrep open | egrep "^$i" )
-    echo -e "${BLUE}[info] $sirs${NC}"
+    echo -e "${GREEN}[info] $sirs${NC}"
     services=$(cat $ip/${i}_info/nmap_port_${i}_service.txt | egrep "^[0-9]+++++"| egrep "$i" | awk '{print $3}')
     sleep 1
 
@@ -100,12 +100,12 @@ do
             http|https|http?)
                 sleep 1
                 # gobuster for directories
-                echo -e "${PINK}[+] Starting http enumeration with gobuster/dirb/nikto on Port: $i${NC}"
+                echo -e "${BLUE}[+] Starting http enumeration with gobuster/dirb/nikto on Port: $i${NC}"
                 echo "COMMAND: gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt -q" > $ip/${i}_http_info/gobuster_directories.txt
                 echo -e "\n\n\n" >> $ip/${i}_http_info/gobuster_directories.txt
                 gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt -q >> $ip/${i}_http_info/gobuster_directories.txt & 
                 #godir_pid=$!
-                #echo -e "${BLUE}[info] Please review $ip/${i}_http_info/gobuster_directories.txt${NC}"
+                #echo -e "${GREEN}[info] Please review $ip/${i}_http_info/gobuster_directories.txt${NC}"
                 sleep 1
 
                 # gobuster for files
@@ -113,7 +113,7 @@ do
                 echo -e "\n\n\n" >> $ip/${i}_http_info/gobuster_files.txt
                 gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt -q >> $ip/${i}_http_info/gobuster_files.txt &
                 #gofile_pid=$!
-                #echo -e "${BLUE}[info] Please review: $ip/${i}_http_info/gobuster_files.txt${NC}"
+                #echo -e "${GREEN}[info] Please review: $ip/${i}_http_info/gobuster_files.txt${NC}"
                 sleep 1
 
                 # dirb for directories
@@ -121,7 +121,7 @@ do
                 echo -e "\n\n\n" >> $ip/${i}_http_info/dirb_directories.txt
                 dirbdir=$(dirb http://$ip:$i -l /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt >> $ip/${i}_http_info/dirb_directories.txt &)
                 #dirbydir_pid=$!
-                #echo -e "${BLUE}[info] Please review: $ip/${i}_http_info/dirb_directories.txt${NC}"
+                #echo -e "${GREEN}[info] Please review: $ip/${i}_http_info/dirb_directories.txt${NC}"
                 sleep 1
 
                 # dirb for files
@@ -129,7 +129,7 @@ do
                 echo -e "\n\n\n" >> $ip/${i}_http_info/dirb_files.txt
                 dirbfile=$(dirb http://$ip:$i -l /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt >> $ip/${i}_http_info/dirb_files.txt &)
                 #dirbyfile_pid=$!
-                #echo -e "${BLUE}[info] Please review: $ip/${i}_http_info/dirb_files.txt${NC}"
+                #echo -e "${GREEN}[info] Please review: $ip/${i}_http_info/dirb_files.txt${NC}"
                 sleep 1
 
                 # nikto for vulnerability scan
@@ -137,12 +137,12 @@ do
                 echo -e "\n\n\n" >> $ip/${i}_http_info/nikto_scan.txt
                 nicky=$(nikto -h http://$ip:$i -Tuning 5 >> $ip/${i}_http_info/nikto_scan.txt 2>/dev/null &)
                 #niktor_pid=$!
-                #echo -e "${BLUE}[info] Please review: $ip/${i}_http_info/nikto_scan.txt${NC}"
+                #echo -e "${GREEN}[info] Please review: $ip/${i}_http_info/nikto_scan.txt${NC}"
                 sleep 1
                 ;;
             ftp|ftp?)
                 sleep 1
-                echo -e "${PINK}[+] Starting Hydra FTP enumeration on Port: $i${NC}"
+                echo -e "${BLUE}[+] Starting Hydra FTP enumeration on Port: $i${NC}"
                 # make sure the directory exists before writing
                 mkdir -p $ip/${i}_ftp_info
                 echo "COMMAND: hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp://$ip -V -s $i" > $ip/${i}_ftp_info/hydra_ftp_${i}.txt
@@ -157,15 +157,15 @@ do
                 elif egrep -qw "could not be completed" "$ip/${i}_ftp_info/hydra_ftp_${i}.txt"; then
                     echo -e "${RED}[error] COULD NOT FINISH Hydra FTP enumeration: SUGGEST MANUAL ENUMERATION${NC}"
                 elif egrep -qw "0 valid password found" "$ip/${i}_ftp_info/hydra_ftp_${i}.txt"; then
-                    echo -e "${BLUE}[info] 0 FTP PASSWORDS FOUND${NC}"
+                    echo -e "${GREEN}[info] 0 FTP PASSWORDS FOUND${NC}"
                 else
-                    echo -e "${BLUE}[info] 0 FTP PASSWORDS FOUND${NC}"
+                    echo -e "${GREEN}[info] 0 FTP PASSWORDS FOUND${NC}"
                 fi
                 '
             ;;
             smb|microsoft-ds|microsoft-ds?)
                 sleep 1
-                echo -e "${PINK}[+] Starting SMB enumeration on Port: $i${NC}"
+                echo -e "${BLUE}[+] Starting SMB enumeration on Port: $i${NC}"
                 echo "COMMAND: enum4linux $ip" >  $ip/${i}_$service\_info/enum4linux_results_${i}.txt
                 echo -e "\n\n\n" >> $ip/${i}_$service\_info/enum4linux_results_${i}.txt
                 enum4linux $ip 2>/dev/null >> $ip/${i}_$service\_info/enum4linux_results_${i}.txt &
@@ -184,15 +184,15 @@ do
                 elif egrep -qw "could not be completed" "$ip/${i}_smb_info/hydra_smb_${i}.txt"; then
                     echo -e "${RED}[error] COULD DONT FINISH Hydra SMB enumeration: SUGGEST MANUAL ENUMERATION${NC}"
                 elif egrep -qw "0 valid password found" "$ip/${i}_smb_info/hydra_smb_${i}.txt"; then
-                    echo -e "${BLUE}[info] 0 SMB PASSWORDS FOUND${NC}"
+                    echo -e "${GREEN}[info] 0 SMB PASSWORDS FOUND${NC}"
                 else
-                    echo -e "${BLUE}[info] 0 SMB PASSWORDS FOUND${NC}"
+                    echo -e "${GREEN}[info] 0 SMB PASSWORDS FOUND${NC}"
                 fi
                 '
                 ;;
             ssh|ssh?)
                 sleep 1
-                echo -e "${PINK}[+] Starting Hydra SSH enumeration on Port: $i${NC}"
+                echo -e "${BLUE}[+] Starting Hydra SSH enumeration on Port: $i${NC}"
                 echo "COMMAND: hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh://$ip -V -s $i -t 1 2>/dev/null" > $ip/${i}_ssh_info/hydra_ssh_${i}.txt
                 echo -e "\n\n\n" >> $ip/${i}_ssh_info/hydra_ssh_${i}.txt
                 hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh://$ip -V -s $i -t 1 2>/dev/null >> $ip/${i}_ssh_info/hydra_ssh_${i}.txt &
@@ -206,9 +206,9 @@ do
                 elif egrep -qw "could not be completed" "$output_file"; then
                     echo -e "${RED}[error] COULD NOT FINISH Hydra SSH enumeration: SUGGEST MANUAL ENUMERATION${NC}"
                 elif egrep -qw "0 valid password found" "$output_file"; then
-                    echo -e "${BLUE}[info] 0 SSH PASSWORDS FOUND${NC}"
+                    echo -e "${GREEN}[info] 0 SSH PASSWORDS FOUND${NC}"
                 else
-                    echo -e "${BLUE}[info] 0 SSH PASSWORDS FOUND${NC}"
+                    echo -e "${GREEN}[info] 0 SSH PASSWORDS FOUND${NC}"
                 fi
                 '
                 ;;
@@ -217,7 +217,7 @@ do
                 ;;
             rpc|msrpc|msrpc?)
                 sleep 1
-                echo -e "${PINK}[+] Starting RPC enumeration on Port: $i${NC}"
+                echo -e "${BLUE}[+] Starting RPC enumeration on Port: $i${NC}"
                 echo "COMMAND: rpcclient -U '' -N $ip" > $ip/${i}_$service\_info/rpcclient_test.txt
                 echo -e "\n\n\n" >> $ip/${i}_$service\_info/rpcclient_test.txt
                 rpc_test=$(rpcclient -U '' -N $ip >> $ip/${i}_$service\_info/rpcclient_test.txt 2>&1 &)
@@ -225,7 +225,7 @@ do
                 ;;
             netbios|netbios-ssn|netbios-ssn?|netbios?)
                 sleep 1
-                echo -e "${PINK}[+] Starting NETBIOS enumeration on Port: $i${NC}"
+                echo -e "${BLUE}[+] Starting NETBIOS enumeration on Port: $i${NC}"
                 echo "COMMAND: nbtscan $ip" > $ip/${i}_$service\_info/nbtscan_results.txt
                 echo -e "\n\n\n" >> $ip/${i}_$service\_info/nbtscan_results.txt
                 netbios_test=$(nbtscan $ip >> $ip/${i}_$service\_info/nbtscan_results.txt &)
@@ -260,7 +260,7 @@ count_active_processes() {
 }
 
 # Check for user input while background tasks are running
-echo -e "${PINK}[+] Waiting on the background scans to finish. Press the ENTER/RETURN key to check progress.${NC}"
+echo -e "${BLUE}[+] Waiting on the background scans to finish. Press the ENTER/RETURN key to check progress.${NC}"
 
 # Loop to monitor processes
 while true; do
@@ -268,7 +268,7 @@ while true; do
     if read -t 1 -n 1; then
         # If a key was pressed, count active processes and display
         active_processes=$(count_active_processes)
-        echo -e "${BLUE}[info] Active Enumeration Processes: $active_processes${NC}"
+        echo -e "${PINK}[endgame] Active Enumeration Processes: $active_processes${NC}"
     fi
 
     # Check if all processes have finished
@@ -279,4 +279,4 @@ while true; do
 
 done
 
-echo -e "${PINK}[+] Enumeration complete.${NC}"
+echo -e "${BLUE}[+] Enumeration complete.${NC}"
