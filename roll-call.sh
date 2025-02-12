@@ -268,7 +268,7 @@ while true; do
     if read -t 1 -n 1; then
         # If a key was pressed, count active processes and display
         active_processes=$(count_active_processes)
-        echo -e "${PINK}[+] Active Enumeration Processes: $active_processes${NC}"
+        echo -e "${BLUE}[info] Active Enumeration Processes: $active_processes${NC}"
     fi
 
     # Check if all processes have finished
