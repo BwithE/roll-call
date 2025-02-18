@@ -46,8 +46,9 @@ bash roll-call.sh -t 127.0.0.1
 - dirb
 - gobuster
 - nikto
+- whatweb
 - smbclient
-- enum4linnux
+- enum4linux
 - rpcclient
 
 # Working on adding
