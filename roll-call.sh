@@ -282,7 +282,7 @@ while true; do
         # If a key was pressed, count active processes and display
         echo -e "${YELLOW}[+] Waiting on the background scans to finish. Press the ENTER/RETURN key to check progress.${NC}"
         active_processes=$(count_active_processes)
-        echo -e "${PINK}[endgame] Active Enumeration Processes: $active_processes${NC}"
+        echo -e "${PINK}[WAIT] Active Enumeration Processes: $active_processes${NC}"
     fi
 
     # Check if all processes have finished
@@ -376,4 +376,4 @@ do
     done
 done
 
-echo -e "${BLUE}[+] Roll-Call : COMPLETE.${NC}"
+echo -e "${PINK}[COMPLETE] Roll-Call ${NC}"
