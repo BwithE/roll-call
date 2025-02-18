@@ -3,13 +3,12 @@ Bash script for enumeration
 
 Originally designed while working through OSCP labs.
 
-
-![image](https://github.com/user-attachments/assets/4b88ba67-c0c9-4619-b8d6-ad0359dafc2d)
+![image](https://github.com/user-attachments/assets/a5d0c9fa-cdd1-4e03-b788-e35e42161494)
 
 
 - Tree listing
 
-![image](https://github.com/user-attachments/assets/07186e9d-62d0-4391-b2f2-9a2e08a89293)
+![image](https://github.com/user-attachments/assets/ab877b66-0efb-4797-913c-b17406e73aeb)
 
 
 # Download
