@@ -320,10 +320,10 @@ do
                 http|https|http?)
                     sleep 1
                     # gobuster for directories
-                    echo -e "${GREEN}[+] Useful gobuster info found for http on port ${i}:${NC}"
+                    echo -e "${GREEN}[+] Possible useful info found for gobuster http on port ${i}:${NC}"
                     egrep "\(Status:" $ip/${i}_http_info/gobuster_directories.txt
                     egrep "\(Status:" $ip/${i}_http_info/gobuster_files.txt
-                    echo -e "${GREEN}[+] Useful dirb info found for http on port ${i}:${NC}"
+                    echo -e "${GREEN}[+] Possible useful info found for dirb http on port ${i}:${NC}"
                     egrep '\(CODE:[0-9]+' $ip/${i}_http_info/dirb_directories.txt
                     egrep '\(CODE:[0-9]+' $ip/${i}_http_info/dirb_files.txt
                     ;;
