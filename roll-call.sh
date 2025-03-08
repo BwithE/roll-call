@@ -199,7 +199,7 @@ do
                 echo -e "${ORANGE}[+] Starting RPC enumeration on Port: $i${NC}"
                 echo "[COMMAND] rpcclient -U '' -N $ip -c enumdomusers" 
                 echo "COMMAND: rpcclient -U '' -N $ip -c enumdomusers" > $ip/${i}_$service\_info/rpcclient_anon_enum.txt
-                echo -e "\n\n\n" >> $ip/${i}_$service\_info/rpcclient_anon_test.txt
+                echo -e "\n\n\n" >> $ip/${i}_$service\_info/rpcclient_anon_enum.txt
                 rpc_test=$(rpcclient -U '' -N $ip -c enumdomusers >> $ip/${i}_$service\_info/rpcclient_anon_enum.txt 2>&1 &)
                 sleep 1
                 # test username and password
