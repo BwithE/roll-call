@@ -28,7 +28,7 @@ fi
 echo "
 +---------------------------+
 |         ROLL-CALL         |
-|  Target enumeration v1.0  |
+|   Target enumeration v.2  |
 +---------------------------+
 "
 # create main directory
@@ -139,10 +139,15 @@ do
                 echo -e "${ORANGE}[+] Starting Hydra FTP enumeration on Port: $i${NC}"
                 # make sure the directory exists before writing
                 mkdir -p $ip/${i}_ftp_info
-                echo "[COMMAND] hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp://$ip -V -s $i"
-                echo "COMMAND: hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp://$ip -V -s $i" > $ip/${i}_ftp_info/hydra_ftp_${i}.txt
+                echo "[COMMAND] crackmapexec ftp $ip:$i -u anonymous -p anonymous > $ip/${i}_ftp_info/anon_ftp_${i}.txt"
+                echo "[COMMAND] crackmapexec ftp $ip:$i -u anonymous -p anonymous > $ip/${i}_ftp_info/anon_ftp_${i}.txt" > $ip/${i}_ftp_info/anon_ftp_${i}.txt 
+                echo -e "\n\n\n" >> $ip/${i}_ftp_info/anon_ftp_${i}.txt 
+                crackmapexec ftp $ip:$i -u anonymous -p anonymous >> $ip/${i}_ftp_info/anon_ftp_${i}.txt 
+
+                echo "[COMMAND] hydra -u anonymous -p anonymous ftp://$ip -V -s $i"
+                echo "COMMAND: hydra -u anonymous -p anonymous ftp://$ip -V -s $i" > $ip/${i}_ftp_info/hydra_ftp_${i}.txt
                 echo -e "\n\n\n" >> $ip/${i}_ftp_info/hydra_ftp_${i}.txt
-                hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp://$ip -V -s $i >> $ip/${i}_ftp_info/hydra_ftp_${i}.txt &
+                hydra -u anonymous -p anonymous ftp://$ip -V -s $i >> $ip/${i}_ftp_info/hydra_ftp_${i}.txt &
                 sleep 1
                 results=$(egrep "^\[$i\]" $ip/${i}_ftp_info/hydra_ftp_${i}.txt)
                 # handle the results and display appropriate messages (OLD REPORTING, keeping for later use)
@@ -161,8 +166,8 @@ do
             smb|microsoft-ds|microsoft-ds?)
                 sleep 1
                 echo -e "${ORANGE}[+] Starting SMB enumeration on Port: $i${NC}"
-                echo "[COMMAND] enum4linux $ip"
-                echo "COMMAND: enum4linux $ip" >  $ip/${i}_$service\_info/enum4linux_results_${i}.txt
+                echo "[COMMAND] enum4linux -v $ip"
+                echo "COMMAND: enum4linux -v $ip" >  $ip/${i}_$service\_info/enum4linux_results_${i}.txt
                 echo -e "\n\n\n" >> $ip/${i}_$service\_info/enum4linux_results_${i}.txt
                 enum4linux $ip 2>/dev/null >> $ip/${i}_$service\_info/enum4linux_results_${i}.txt &
                 sleep 1
@@ -187,7 +192,7 @@ do
                 '
                 ;;
             ssh|ssh?)
-                function_ssh () {
+            : ' Not needed at the moment, working through methodology. 
                 sleep 1
                 echo -e "${ORANGE}[+] Starting Hydra SSH enumeration on Port: $i${NC}"
                 echo "[COMMAND] hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh://$ip -V -s $i -t 1 2>/dev/null"
@@ -196,7 +201,7 @@ do
                 hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh://$ip -V -s $i -t 1 2>/dev/null >> $ip/${i}_ssh_info/hydra_ssh_${i}.txt &
                 sleep 1
                 # handle the results and display appropriate messages (OLD REPORTING, keeping for later use)
-                : '                
+                               
                 output_file="$ip/${i}_ssh_info/hydra_ssh_${i}.txt"
                 results=$(egrep "^\[$i]" $ip/${i}_ssh_info/hydra_ssh_${i}.txt)
                 if [ -n "$results" ]; then
@@ -209,12 +214,13 @@ do
                     echo -e "${BLUE}[info] 0 SSH PASSWORDS FOUND${NC}"
                 fi
                 '
-                }
+                
                 ;;
             dns|dns?)
                 # to be added
                 ;;
             rpc|msrpc|msrpc?)
+            : ' Not needed at the moment, working through methodology. enum4linux should catch rpc info
                 sleep 1
                 echo -e "${ORANGE}[+] Starting RPC enumeration on Port: $i${NC}"
                 echo "[COMMAND] rpcclient -U '' -N $ip" 
@@ -222,6 +228,7 @@ do
                 echo -e "\n\n\n" >> $ip/${i}_$service\_info/rpcclient_test.txt
                 rpc_test=$(rpcclient -U '' -N $ip >> $ip/${i}_$service\_info/rpcclient_test.txt 2>&1 &)
                 sleep 1
+            '
                 ;;
             netbios|netbios-ssn|netbios-ssn?|netbios?)
                 sleep 1
@@ -256,6 +263,7 @@ done
 count_active_processes() {
     # Get counts of different processes
     ftphydra_count=$(ps aux | egrep -w 'hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt ftp' | egrep -v "color=auto" | egrep -v "grep" | wc -l)
+    ftpcrack_count=$(ps aux | egrep -w 'crackmapexec' | egrep -v "color=auto" | egrep -v "grep" | wc -l)
     sshhydra_count=$(ps aux | egrep -w 'hydra -C /usr/share/wordlists/seclists/Passwords/Default-Credentials/ssh-betterdefaultpasslist.txt ssh' | egrep -v "color=auto" | egrep -v "grep" | wc -l)
     gobuster_count=$(ps aux | egrep -w 'gobuster' | egrep -v "color=auto" | egrep -v "grep" | wc -l)
     dirb_count=$(ps aux | egrep -w 'dirb' | egrep -v "color=auto" | egrep -v "grep" | wc -l)
@@ -267,7 +275,7 @@ count_active_processes() {
     smbclient_count=$(ps aux | egrep -w 'smbclient '| egrep -v "color=auto" | egrep -v "grep" | wc -l)
     smtp_enumusers_count=$(ps aux | egrep -w 'nmap -p 25 --script=smtp-enum-users' | egrep -v "color=auto" | egrep -v "grep" | wc -l )
 
-    total_processes_count=$(($smtp_enumusers_count + $whatweb_count + $ftphydra_count + $sshhydra_count + $gobuster_count + $dirb_count + $nikto_count + $enum4linux_count + $rpc_count + $netbios_count + $smbclient_count))
+    total_processes_count=$(($smtp_enumusers_count + $whatweb_count + $ftpcrack_count + $ftphydra_count + $sshhydra_count + $gobuster_count + $dirb_count + $nikto_count + $enum4linux_count + $rpc_count + $netbios_count + $smbclient_count))
     echo $total_processes_count
 }
 
@@ -305,7 +313,7 @@ do
     sirs=$(cat $ip/port_scan/nmap_scan.txt | egrep open | egrep "tcp|udp" | egrep "^$i" )
     services=$(cat $ip/port_scan/nmap_scan.txt | egrep "^[0-9]+++++"| egrep "$i" | awk '{print $3}')
     
-    # loop through each service to dump useful info found
+    # loop through each service to dump possible useful info found
     for service in $services; do 
     
         case $service in
@@ -324,7 +332,7 @@ do
                     results=$(egrep "^\[${i}\]" $ip/${i}_ftp_info/hydra_ftp_${i}.txt)
                     if [ -n "$results" ]
                     then
-                        echo -e "${GREEN}[+] Useful info found for FTP:${NC}"
+                        echo -e "${GREEN}[+] Possible useful info found for FTP:${NC}"
                         echo $results
                     fi
                     ;;
