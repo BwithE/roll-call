@@ -233,20 +233,20 @@ do
                                 echo "$lookup_sid_output"
                             done
                         fi
-                        rpcclient -W "$workgroup_domain" -U "$username" -P "$password" "$ip" -c enumdomusers
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c 'lsaquery' 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" -c 'srvinfo' "$ip" 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c "getdompwinfo" 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c "enumalsgroups $grouptype" 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c "enumdomgroups" 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c "lookupnames $known_username" 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c 'lsaenumsid' 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c "lookupsids $sid-$rid" 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c 'querydispinfo' 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c 'enumdomusers' 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c "querygroup $rid 1" 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c "queryuser $rid 1" 2>&1
-                        rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c 'enumprinters' 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'enumdomusers' 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'lsaquery' 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'srvinfo'  2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "getdompwinfo" 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "enumalsgroups $grouptype" 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "enumdomgroups" 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "lookupnames $known_username" 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'lsaenumsid' 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "lookupsids $sid-$rid" 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'querydispinfo' 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'enumdomusers' 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "querygroup $rid 1" 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "queryuser $rid 1" 2>&1
+                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'enumprinters' 2>&1
                     }
                     rpc_func >> $ip/${i}_$service\_info/rpcclient_domain_enum.txt 2>&1 &
                     sleep 1
