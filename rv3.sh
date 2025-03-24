@@ -38,12 +38,12 @@ if [ -z "$ip" ]; then
     usage
 fi
 
-echo "
-+---------------------------+
-|         ROLL-CALL         |
-|   Target enumeration v.3  |
-+---------------------------+
-"
+echo -e "${ORANGE}
+╔═══════════════════════════╗
+║         ROLL-CALL         ║
+║   Target enumeration v.3  ║
+╚═══════════════════════════╝
+${NC}"
 # create main directory
 mkdir -p $ip 2>/dev/null
 
@@ -72,6 +72,11 @@ ports=$(cat $ip/port_scan/nmap_scan.txt | egrep open | egrep "tcp|udp" | egrep -
 ############################################################################################
 ############################################################################################
 echo -e "${ORANGE}[+] Starting service enumeration:${NC}"
+
+# Flag to ensure RPC runs only once
+rpc_attempted=false
+
+
 for i in $ports
 do
     sleep 1
@@ -99,7 +104,7 @@ do
                     # nikto for vulnerability scan
                     echo "COMMAND: nikto -h http://$ip:$i -Tuning 5" > $ip/${i}_http_info/nikto_scan.txt
                     echo -e "\n\n\n" >> $ip/${i}_http_info/nikto_scan.txt
-                    nicky=$(nikto -h http://$ip:$i -Tuning 5 >> $ip/${i}_http_info/nikto_scan.txt 2>/dev/null)
+                    nicky=$(nikto -h http://$ip:$i -Tuning 5 >> $ip/${i}_http_info/nikto_scan.txt 2>/dev/null &)
                     # whatweb for vulnerability scan
                     echo "COMMAND: whatweb http://$ip:$i " > $ip/${i}_http_info/whatweb_scan.txt
                     echo -e "\n\n\n" >> $ip/${i}_http_info/whatweb_scan.txt
@@ -107,19 +112,19 @@ do
                     # gobuster for directories
                     echo "COMMAND: gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt -q" > $ip/${i}_http_info/gobuster_directories.txt
                     echo -e "\n\n\n" >> $ip/${i}_http_info/gobuster_directories.txt
-                    gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt -q >> $ip/${i}_http_info/gobuster_directories.txt
+                    gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt -q >> $ip/${i}_http_info/gobuster_directories.txt &
                     # gobuster for files
                     echo "COMMAND: gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt -q " > $ip/${i}_http_info/gobuster_files.txt
                     echo -e "\n\n\n" >> $ip/${i}_http_info/gobuster_files.txt
-                    gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt -q >> $ip/${i}_http_info/gobuster_files.txt
+                    gobuster dir -u http://$ip:$i -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt -q >> $ip/${i}_http_info/gobuster_files.txt &
                     # dirb for directories
                     echo "COMMAND: dirb http://$ip:$i /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt" > $ip/${i}_http_info/dirb_directories.txt
                     echo -e "\n\n\n" >> $ip/${i}_http_info/dirb_directories.txt
-                    dirbdir=$(dirb http://$ip:$i /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt >> $ip/${i}_http_info/dirb_directories.txt)
+                    dirbdir=$(dirb http://$ip:$i /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories.txt >> $ip/${i}_http_info/dirb_directories.txt &)
                     # dirb for files
                     echo "COMMAND: dirb http://$ip:$i /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt" > $ip/${i}_http_info/dirb_files.txt
                     echo -e "\n\n\n" >> $ip/${i}_http_info/dirb_files.txt
-                    dirbfile=$(dirb http://$ip:$i /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt >> $ip/${i}_http_info/dirb_files.txt)
+                    dirbfile=$(dirb http://$ip:$i /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files.txt >> $ip/${i}_http_info/dirb_files.txt &)
                 }
                     http_enumeration &    
                 ;;
@@ -178,85 +183,89 @@ do
                 # to be added
                 ;;
             rpc|msrpc|msrpc?)
-                mkdir $ip/${i}_$service\_info 2>/dev/null
-                sleep 1
-                # test anonymous connect
-                echo -e "${ORANGE}[+] Starting RPC enumeration: ${NC}"
-                echo "COMMAND: rpcclient -U '' -N $ip -c enumdomusers" > $ip/${i}_$service\_info/rpcclient_anon_enum.txt
-                echo -e "\n\n\n" >> $ip/${i}_$service\_info/rpcclient_anon_enum.txt
-                rpc_test=$(rpcclient -U '' -N $ip -c enumdomusers >> $ip/${i}_$service\_info/rpcclient_anon_enum.txt 2>&1 &)
-                sleep 1
-                # test username and password
-                if [[ -n "$username" && -n "$password" ]]; then
-                    echo -e "${ORANGE}[+] Starting RPC enumeration: ${NC}"
-                    echo "COMMAND: rpcclient -U $username -P $password $ip -c enumdomusers" > $ip/${i}_$service\_info/rpcclient_userpass_enum.txt
-                    echo -e "\n\n\n" >> $ip/${i}_$service\_info/rpcclient_userpass_enum.txt
-                    rpc_test=$(rpcclient -U "$username" -P "$password" "$ip" -c enumdomusers >> $ip/${i}_$service\_info/rpcclient_userpass_enum.txt 2>&1 &)
+            # Only run RPC enumeration once
+                if [ "$rpc_attempted" = false ]; then
+                    rpc_attempted=true
+                    mkdir $ip/${i}_$service\_info 2>/dev/null
                     sleep 1
-                fi
-                # test username and password and domain
-                if [[ -n "$username" && -n "$password" && -n "$workgroup_domain" ]]; then
+                    # test anonymous connect
                     echo -e "${ORANGE}[+] Starting RPC enumeration: ${NC}"
-                    echo -e "\n\n\n" >> $ip/${i}_$service\_info/rpcclient_domain_enum.txt
-                    rpc_func() {
-                        # Define group type for enumalsgroups
-                        grouptype="domain"  # Set this to "domain" or "builtin"
-                        # Define known username for lookupnames
-                        known_username="user1"  # Replace this with a valid username
-                        # Step 1: Enumerate domain users and extract RIDs
-                        user_rids=()
-                        enum_users_output=$(rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c 'enumdomusers' 2>&1)
-                        # Extract RIDs from the output
-                        while IFS= read -r line; do
-                            if [[ "$line" =~ \[([0-9]+)\] ]]; then
-                                user_rids+=("${BASH_REMATCH[1]}")
-                            fi
-                        done <<< "$enum_users_output"
-                        # Step 2: Use extracted RIDs to look up SIDs
-                        for rid in "${user_rids[@]}"; do
-                            lookup_output=$(rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c "queryuser $rid 1" 2>&1)
-                            echo "Lookup result for RID $rid:"
-                            echo "$lookup_output"
-                        done
-                        # Step 3: Extract domain SID and use it for lookups
-                        lsa_output=$(rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c 'lsaquery' 2>&1)
-                        if [[ "$lsa_output" =~ Domain\ SID:\ (S-[0-9\-]+) ]]; then
-                            domain_sid="${BASH_REMATCH[1]}"
-                            echo "Extracted Domain SID: $domain_sid"
-                        fi
-                        # Step 4: Construct full SIDs and look up names
-                        if [[ -n "$domain_sid" ]]; then
+                    echo "COMMAND: rpcclient -U '' -N $ip -c enumdomusers" > $ip/${i}_$service\_info/rpcclient_anon_enum.txt
+                    echo -e "\n\n\n" >> $ip/${i}_$service\_info/rpcclient_anon_enum.txt
+                    rpc_test=$(rpcclient -U '' -N $ip -c enumdomusers >> $ip/${i}_$service\_info/rpcclient_anon_enum.txt 2>&1 &)
+                    sleep 1
+                    # test username and password
+                    if [[ -n "$username" && -n "$password" ]]; then
+                        echo -e "${ORANGE}[+] Starting RPC enumeration: ${NC}"
+                        echo "COMMAND: rpcclient -U $username -P $password $ip -c enumdomusers" > $ip/${i}_$service\_info/rpcclient_userpass_enum.txt
+                        echo -e "\n\n\n" >> $ip/${i}_$service\_info/rpcclient_userpass_enum.txt
+                        rpc_test=$(rpcclient -U "$username" -P "$password" "$ip" -c enumdomusers >> $ip/${i}_$service\_info/rpcclient_userpass_enum.txt 2>&1 &)
+                        sleep 1
+                    fi
+                    # test username and password and domain
+                    if [[ -n "$username" && -n "$password" && -n "$workgroup_domain" ]]; then
+                        echo -e "${ORANGE}[+] Starting RPC enumeration: ${NC}"
+                        echo -e "\n\n\n" >> $ip/${i}_$service\_info/rpcclient_domain_enum.txt
+                        rpc_func() {
+                            # Define group type for enumalsgroups
+                            grouptype="domain"  # Set this to "domain" or "builtin"
+                            # Define known username for lookupnames
+                            known_username="user1"  # Replace this with a valid username
+                            # Step 1: Enumerate domain users and extract RIDs
+                            user_rids=()
+                            enum_users_output=$(rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c 'enumdomusers' 2>&1)
+                            # Extract RIDs from the output
+                            while IFS= read -r line; do
+                                if [[ "$line" =~ \[([0-9]+)\] ]]; then
+                                    user_rids+=("${BASH_REMATCH[1]}")
+                                fi
+                            done <<< "$enum_users_output"
+                            # Step 2: Use extracted RIDs to look up SIDs
                             for rid in "${user_rids[@]}"; do
-                                full_sid="$domain_sid-$rid"
-                                lookup_sid_output=$(rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c "lookupsids $full_sid" 2>&1)
-                                echo "Lookup result for SID $full_sid:"
-                                echo "$lookup_sid_output"
+                                lookup_output=$(rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c "queryuser $rid 1" 2>&1)
+                                echo "Lookup result for RID $rid:"
+                                echo "$lookup_output"
                             done
-                        fi
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'enumdomusers' 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'lsaquery' 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'srvinfo'  2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "getdompwinfo" 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "enumalsgroups $grouptype" 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "enumdomgroups" 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "lookupnames $known_username" 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'lsaenumsid' 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "lookupsids $sid-$rid" 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'querydispinfo' 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'enumdomusers' 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "querygroup $rid 1" 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "queryuser $rid 1" 2>&1
-                        rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'enumprinters' 2>&1
-                    }
-                    rpc_func >> $ip/${i}_$service\_info/rpcclient_domain_enum.txt 2>&1 &
-                    sleep 1
+                            # Step 3: Extract domain SID and use it for lookups
+                            lsa_output=$(rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c 'lsaquery' 2>&1)
+                            if [[ "$lsa_output" =~ Domain\ SID:\ (S-[0-9\-]+) ]]; then
+                                domain_sid="${BASH_REMATCH[1]}"
+                                echo "Extracted Domain SID: $domain_sid"
+                            fi
+                            # Step 4: Construct full SIDs and look up names
+                            if [[ -n "$domain_sid" ]]; then
+                                for rid in "${user_rids[@]}"; do
+                                    full_sid="$domain_sid-$rid"
+                                    lookup_sid_output=$(rpcclient -W "$workgroup_domain" -U"$username%$password" "$ip" -c "lookupsids $full_sid" 2>&1)
+                                    echo "Lookup result for SID $full_sid:"
+                                    echo "$lookup_sid_output"
+                                done
+                            fi
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'enumdomusers' 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'lsaquery' 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'srvinfo'  2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "getdompwinfo" 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "enumalsgroups $grouptype" 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "enumdomgroups" 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "lookupnames $known_username" 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'lsaenumsid' 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "lookupsids $sid-$rid" 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'querydispinfo' 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'enumdomusers' 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "querygroup $rid 1" 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c "queryuser $rid 1" 2>&1
+                            rpcclient -W "$workgroup_domain" -U "$username%$password" "$ip" -c 'enumprinters' 2>&1
+                        }
+                        rpc_func >> $ip/${i}_$service\_info/rpcclient_domain_enum.txt 2>&1 &
+                        sleep 1
+                    fi
                 fi
                 ;;
             netbios|netbios-ssn|netbios-ssn?|netbios?)
                 mkdir $ip/${i}_$service\_info 2>/dev/null
                 sleep 1
                 echo -e "${ORANGE}[+] Starting NETBIOS enumeration on Port: $i${NC}"
-                echo "[COMMAND] nbtscan $ip"
+                #echo "[COMMAND] nbtscan $ip"
                 echo "COMMAND: nbtscan $ip" > $ip/${i}_$service\_info/nbtscan_results.txt
                 echo -e "\n\n\n" >> $ip/${i}_$service\_info/nbtscan_results.txt
                 netbios_test=$(nbtscan $ip >> $ip/${i}_$service\_info/nbtscan_results.txt &)
@@ -266,7 +275,7 @@ do
                 mkdir $ip/${i}_$service\_info 2>/dev/null
                 sleep 1
                 echo -e "${ORANGE}[+] Starting SMTP enumeration on Port: $i${NC}"
-                echo "[COMMAND] nmap -p ${i} --script=smtp-enum-users $ip"
+                #echo "[COMMAND] nmap -p ${i} --script=smtp-enum-users $ip"
                 echo "COMMAND: nmap -p ${i} --script=smtp-enum-users $ip" > $ip/${i}_$service\_info/smtp_nmap_enumusers_script.txt
                 echo -e "\n\n\n" >> $ip/${i}_$service\_info/smtp_nmap_enumusers_script.txt
                 smtp_enumusers=$(nmap -p ${i} --script=smtp-enum-users $ip >> $ip/${i}_$service\_info/smtp_nmap_enumusers_script.txt &)
